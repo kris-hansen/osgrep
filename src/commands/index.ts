@@ -10,6 +10,7 @@ import {
 } from "../lib/sync-helpers";
 import type { Store } from "../lib/store";
 import { initialSync, MetaStore } from "../utils";
+import { ensureGrammarsDownloaded } from "../lib/chunker";
 
 const PROFILE_ENABLED =
   process.env.OSGREP_PROFILE === "1" || process.env.OSGREP_PROFILE === "true";
@@ -52,6 +53,8 @@ export const index = new Command("index")
         await metaStoreForReset.load();
         metaStoreForReset.deleteByPrefix(indexRoot);
         await metaStoreForReset.save();
+        console.log("Ensuring grammars are downloaded...");
+        await ensureGrammarsDownloaded();
         console.log("Existing index removed. Re-indexing...");
       }
 

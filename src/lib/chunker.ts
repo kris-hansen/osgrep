@@ -19,6 +19,30 @@ const GRAMMAR_URLS: Record<string, string> = {
     "https://github.com/tree-sitter/tree-sitter-go/releases/latest/download/tree-sitter-go.wasm",
 };
 
+export async function ensureGrammarsDownloaded(): Promise<void> {
+  if (!fs.existsSync(GRAMMARS_DIR)) {
+    fs.mkdirSync(GRAMMARS_DIR, { recursive: true });
+  }
+
+  const downloadFile = async (url: string, dest: string): Promise<void> => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to download ${url}`);
+    const arrayBuffer = await response.arrayBuffer();
+    fs.writeFileSync(dest, Buffer.from(arrayBuffer));
+  };
+
+  for (const [lang, url] of Object.entries(GRAMMAR_URLS)) {
+    const wasmPath = path.join(GRAMMARS_DIR, `tree-sitter-${lang}.wasm`);
+    if (!fs.existsSync(wasmPath)) {
+      try {
+        await downloadFile(url, wasmPath);
+      } catch (err) {
+        console.warn(`⚠️  Could not download ${lang} grammar: ${err}`);
+      }
+    }
+  }
+}
+
 export interface Chunk {
   content: string;
   startLine: number;
